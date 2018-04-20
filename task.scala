@@ -11,19 +11,21 @@ object AircraftCounter
     def main(args: Array[String])
     {
         // Create spark session
-        /*val spark = SparkSession
-                    .builder()
-                    .appName("task")
-                    .config("spark.some.config.option", "some-value")
-                    .getOrCreate()
-        */
+        val spark = SparkSession
+            .builder()
+            .appName("task")
+            .config("spark.some.config.option", "some-value")
+            .getOrCreate()
         
         // initialise spark context
-        val conf = new SparkConf().setAppName("AircraftCounter")
+        val conf = new SparkConf()
         val sc = new SparkContext(conf)
         
-        // Create new buffered source using main data set
-        //val mainSetBufferedSource = scala.io.Source.fromFile("hdfs:///data/THOR_Vietnam_Bombing_Operations.csv")
+        // Read in main data set as data frame
+        val mainSetDataFrame = spark.read
+            .format("csv")
+            .option("header", "true)
+            .load("hdfs:///data/THOR_Vietnam_Bombing_Operations.csv")
         
         // Process main data set
         
