@@ -3,7 +3,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.serializer.KryoSerializer
 
-object QualityMapper
+object MunitionRawWeightMapper
 {
     // Define main method (Spark entry point)
     def main(args: Array[String])
@@ -27,7 +27,7 @@ object QualityMapper
         rawDataFrame.createGlobalTempView("raw")
         
         // Create sql statement to grab all rows from specified column (argument 2) that meet given condition (argument 3) and have a valid longitude and latiude value
-        val sqlStatement = "SELECT TGTLATDD_DDD_WGS84, TGTLONDDD_DDD_WGS84, " + args(1) + " FROM global_temp.raw WHERE " + args(1) + " = '" + args(2) + "' AND TGTLATDD_DDD_WGS84 <> '' AND TGTLONDDD_DDD_WGS84 <> ''"
+        val sqlStatement = "SELECT TGTLATDD_DDD_WGS84, TGTLONDDD_DDD_WGS84, NUMWEAPONSDELIVERED * WEAPONTYPEWEIGHT, WEAPONTYPE FROM global_temp.raw WHERE WEAPONTYPE = '" + args(1) + "' AND TGTLATDD_DDD_WGS84 <> '' AND TGTLONDDD_DDD_WGS84 <> ''"
         
         // Execute sql statement from above, filtering data
         val filteredDataFrame = sparkSession.sql(sqlStatement)
