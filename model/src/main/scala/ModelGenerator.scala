@@ -18,14 +18,12 @@ object ModelGenerator
     {
         // Create new spark conf
         val sparkConf = new SparkConf()
-          .setMaster("local")
-          //.setMaster("spark://columbia:47401")
           .setAppName("Model Generator")
 
         // Create new spark session
         val sparkSession = SparkSession
           .builder()
-          .appName("QualityMapper")
+          .appName("Model Generator")
           .config(sparkConf)
           .getOrCreate()
 
@@ -33,20 +31,22 @@ object ModelGenerator
       if (args(0) == "create") {
         createAndSaveAircraftModel(sparkConf, sparkSession)
       } else if (args(0) == "use") {
-        useAircraftModel(sparkSession)
+        useAircraftModel(sparkSession, args(1), args(2))
       }
     }
 
-    def useAircraftModel(sparkSession: SparkSession) = {
+    def useAircraftModel(sparkSession: SparkSession, inputFile: String, outputFile: String) = {
       val useDF = sparkSession
         .read
         .format("csv")
         .option("header", "true")
-        .load("input.csv")
+        .load(inputFile)
 
-        val model = PipelineModel.read.load("aircraft-model")
+        val model = PipelineModel.read.load("hdfs://columbia:47481/data/model-airplane")
         val predictions = model.transform(useDF)
-        predictions.select("PREDICTED_AIRCRAFT", "features").show()
+        
+        
+        predictions.select("PREDICTED_AIRCRAFT", "features").coalesce(1).write.text(outputFile)
     }
 
   /*
@@ -69,8 +69,7 @@ object ModelGenerator
         .read
         .format("csv")
         .option("header", "true")
-        .load("small.csv")
-      //.load("hdfs://columbia:47481/data/THOR_Vietnam_Bombing_Operations.csv")
+        .load("hdfs://columbia:47481/data/THOR_Vietnam_Bombing_Operations.csv")
 
       //And transform it....
       val filtered = rawDataFrame.filter("COUNTRYFLYINGMISSION is not null")
@@ -140,7 +139,7 @@ object ModelGenerator
         .setLayers(Array[Int](6, 30, 30, 50))
         .setBlockSize(128)
         .setSeed(1234L)
-        .setMaxIter(100)
+        .setMaxIter(1000)
         .setLabelCol("labels")
         .setFeaturesCol("features")
 
@@ -162,7 +161,7 @@ object ModelGenerator
         .setMetricName("accuracy")
 
       val accuracy = evaluator.evaluate(predictions)
-      model.write.overwrite().save("aircraft-model")
+      model.write.overwrite().save("hdfs://columbia:47481/data/model-airplane")
 
 
       println("The model is " + accuracy + "% accurate.")
