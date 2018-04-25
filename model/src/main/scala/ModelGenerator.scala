@@ -29,20 +29,20 @@ object ModelGenerator
 
 
       if (args(0) == "create") {
-        createAndSaveAircraftModel(sparkConf, sparkSession)
+        createAndSaveAircraftModel(sparkConf, sparkSession, args(4))
       } else if (args(0) == "use") {
-        useAircraftModel(sparkSession, args(1), args(2))
+        useAircraftModel(sparkSession, args(1), args(2), args(3))
       }
     }
 
-    def useAircraftModel(sparkSession: SparkSession, inputFile: String, outputFile: String) = {
+    def useAircraftModel(sparkSession: SparkSession, inputFile: String, outputFile: String, modelFile: String) = {
       val useDF = sparkSession
         .read
         .format("csv")
         .option("header", "true")
         .load(inputFile)
 
-        val model = PipelineModel.read.load("hdfs://columbia:47481/data/model-airplane")
+        val model = PipelineModel.read.load(modelFile)
         val predictions = model.transform(useDF)
         
         
@@ -63,13 +63,13 @@ object ModelGenerator
       predictions.select("PREDICTED_TARGET", "features").show()
     }*/
 
-    def createAndSaveAircraftModel(sparkConf: SparkConf, sparkSession: SparkSession) = {
+    def createAndSaveAircraftModel(sparkConf: SparkConf, sparkSession: SparkSession, inputFile: String) = {
       //Load csv file
       val rawDataFrame = sparkSession
         .read
         .format("csv")
         .option("header", "true")
-        .load("hdfs://columbia:47481/data/THOR_Vietnam_Bombing_Operations.csv")
+        .load(inputFile)
 
       //And transform it....
       val filtered = rawDataFrame.filter("COUNTRYFLYINGMISSION is not null")
@@ -139,7 +139,7 @@ object ModelGenerator
         .setLayers(Array[Int](6, 30, 30, 50))
         .setBlockSize(128)
         .setSeed(1234L)
-        .setMaxIter(1000)
+        .setMaxIter(100)
         .setLabelCol("labels")
         .setFeaturesCol("features")
 
