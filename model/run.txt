@@ -1,0 +1,6 @@
+To run:
+
+
+
+
+java -cp target/scala-2.11/hw4_2.11-0.1.0.jar:$(cat /Users/administrator/Documents/School/Undergraduate/Senior/455/Final/model/target/streams/compile/dependencyClasspath/\$global/streams/export) ModelGenerator
